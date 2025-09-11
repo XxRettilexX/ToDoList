@@ -1,0 +1,47 @@
+    body {
+        font-family: 'MedievalSharp', cursive;
+        background: url("https://images.unsplash.com/photo-1501785888041-af3ef285b470") no-repeat center center fixed;
+        background-size: cover;
+        color: #f5deb3;
+    }
+
+    .container {
+        background: rgba(0, 0, 0, 0.75);
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 0 25px gold;
+        margin-top: 50px;
+    }
+
+    h1 {
+        color: gold;
+        text-shadow: 2px 2px 5px black;
+    }
+
+    li.completed span {
+        text-decoration: line-through;
+        color: gray;
+    }
+
+    .stats {
+        background: rgba(139, 69, 19, 0.3);
+        border-radius: 10px;
+        padding: 10px;
+        margin: 15px 0;
+    }
+
+    .controls {
+        margin: 15px 0;
+    }
+
+    .sorting {
+        margin: 15px 0;
+    }
+
+    .task-item {
+        transition: all 0.3s ease;
+    }
+
+    .search-box {
+        margin-bottom: 15px;
+    }
