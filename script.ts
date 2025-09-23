@@ -1,4 +1,4 @@
-// ✅ Definizione tipo per Task
+// Definizione interfaccia tipo per Task
 interface Task {
     id: number;
     text: string;
@@ -6,7 +6,7 @@ interface Task {
     createdAt: Date;
 }
 
-// ✅ Tipizzazione elementi del DOM
+// Tipizzazione elementi del DOM
 const taskInput = document.getElementById("taskInput") as HTMLInputElement;
 const addTaskBtn = document.getElementById("addTask") as HTMLButtonElement;
 const taskList = document.getElementById("taskList") as HTMLUListElement;
@@ -23,7 +23,7 @@ const loadFakeTasksBtn = document.getElementById("loadFakeTasks") as HTMLButtonE
 
 
 
-// ✅ Stato (usando array per compatibilità)
+// Stato (usando array per compatibilità)
 let tasks: { [id: number]: Task } = {};
 let currentSort: 'date' | 'status' = 'date';
 let searchTerm: string = '';
