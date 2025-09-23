@@ -1,203 +1,237 @@
-const taskInput = document.getElementById("taskInput");
-const addTaskBtn = document.getElementById("addTask");
-const taskList = document.getElementById("taskList");
-const searchInput = document.getElementById("searchInput");
-const totalTasksSpan = document.getElementById("totalTasks");
-const completedTasksSpan = document.getElementById("completedTasks");
-const pendingTasksSpan = document.getElementById("pendingTasks");
-const markAllBtn = document.getElementById("markAll");
-const removeCompletedBtn = document.getElementById("removeCompleted");
-const clearAllBtn = document.getElementById("clearAll");
-const sortButtons = document.querySelectorAll(".sorting button");
-
-let tasks = new Map();
-let currentSort = 'date';
-let searchTerm = '';
-
+// ✅ Tipizzazione elementi del DOM
+var taskInput = document.getElementById("taskInput");
+var addTaskBtn = document.getElementById("addTask");
+var taskList = document.getElementById("taskList");
+var searchInput = document.getElementById("searchInput");
+var totalTasksSpan = document.getElementById("totalTasks");
+var completedTasksSpan = document.getElementById("completedTasks");
+var pendingTasksSpan = document.getElementById("pendingTasks");
+var markAllBtn = document.getElementById("markAll");
+var removeCompletedBtn = document.getElementById("removeCompleted");
+var clearAllBtn = document.getElementById("clearAll");
+var sortButtons = document.querySelectorAll(".sorting button");
+var loadFakeTasksBtn = document.getElementById("loadFakeTasks");
+// ✅ Stato (usando array per compatibilità)
+var tasks = {};
+var currentSort = 'date';
+var searchTerm = '';
 // Carica i task dal localStorage all'avvio
 loadTasks();
-
 addTaskBtn.addEventListener("click", addTask);
-taskInput.addEventListener("keypress", e => {
-    if (e.key === "Enter") addTask();
+taskInput.addEventListener("keypress", function (e) {
+    if (e.key === "Enter")
+        addTask();
 });
-
-searchInput.addEventListener("input", e => {
-    searchTerm = e.target.value.toLowerCase();
+searchInput.addEventListener("input", function (e) {
+    var target = e.target;
+    searchTerm = target.value.toLowerCase();
     renderTasks();
 });
-
 markAllBtn.addEventListener("click", markAllTasks);
 removeCompletedBtn.addEventListener("click", removeCompletedTasks);
 clearAllBtn.addEventListener("click", clearAllTasks);
-
-sortButtons.forEach(button => {
-    button.addEventListener("click", () => {
-        const sortType = button.getAttribute('data-sort');
-        setSortType(sortType);
+for (var i = 0; i < sortButtons.length; i++) {
+    sortButtons[i].addEventListener("click", function () {
+        var sortType = this.getAttribute('data-sort');
+        if (sortType === 'date' || sortType === 'status') {
+            setSortType(sortType);
+        }
     });
-});
-
+}
 function setSortType(sortType) {
     currentSort = sortType;
-    sortButtons.forEach(btn => btn.classList.remove('active'));
-    document.querySelector(`.sorting button[data-sort="${sortType}"]`).classList.add('active');
+    for (var i = 0; i < sortButtons.length; i++) {
+        sortButtons[i].classList.remove('active');
+    }
+    var activeButton = document.querySelector('.sorting button[data-sort="' + sortType + '"]');
+    if (activeButton) {
+        activeButton.classList.add('active');
+    }
     renderTasks();
 }
-
 function addTask() {
-    const text = taskInput.value.trim();
-    if (text === "") return;
-
-    const id = Date.now();
-    const task = {
-        id,
-        text,
+    var text = taskInput.value.trim();
+    if (text === "")
+        return;
+    var id = Date.now();
+    var task = {
+        id: id,
+        text: text,
         completed: false,
         createdAt: new Date()
     };
-
-    tasks.set(id, task);
+    tasks[id] = task;
     saveTasks();
     renderTasks();
     taskInput.value = "";
 }
-
 function toggleComplete(id) {
-    const task = tasks.get(id);
+    var task = tasks[id];
     if (task) {
         task.completed = !task.completed;
         saveTasks();
         renderTasks();
     }
 }
-
 function deleteTask(id) {
-    tasks.delete(id);
+    delete tasks[id];
     saveTasks();
     renderTasks();
 }
-
 function markAllTasks() {
-    for (const task of tasks.values()) {
-        task.completed = true;
+    var taskIds = Object.keys(tasks);
+    for (var i = 0; i < taskIds.length; i++) {
+        var id = parseInt(taskIds[i]);
+        tasks[id].completed = true;
     }
     saveTasks();
     renderTasks();
 }
-
 function removeCompletedTasks() {
-    for (const [id, task] of tasks.entries()) {
-        if (task.completed) {
-            tasks.delete(id);
+    var taskIds = Object.keys(tasks);
+    for (var i = 0; i < taskIds.length; i++) {
+        var id = parseInt(taskIds[i]);
+        if (tasks[id].completed) {
+            delete tasks[id];
         }
     }
     saveTasks();
     renderTasks();
 }
-
 function clearAllTasks() {
     if (confirm("Sei sicuro di voler eliminare tutti gli incantesimi?")) {
-        tasks.clear();
+        tasks = {};
         saveTasks();
         renderTasks();
     }
 }
-
 function updateStats() {
-    const total = tasks.size;
-    let completed = 0;
-
-    for (const task of tasks.values()) {
-        if (task.completed) completed++;
+    var taskArray = getTasksArray();
+    var total = taskArray.length;
+    var completed = 0;
+    for (var i = 0; i < taskArray.length; i++) {
+        if (taskArray[i].completed) {
+            completed++;
+        }
     }
-
-    totalTasksSpan.textContent = `Incantesimi totali: ${total}`;
-    completedTasksSpan.textContent = `Incantesimi completati: ${completed}`;
-    pendingTasksSpan.textContent = `Incantesimi da completare: ${total - completed}`;
+    totalTasksSpan.textContent = "Incantesimi totali: " + total;
+    completedTasksSpan.textContent = "Incantesimi completati: " + completed;
+    pendingTasksSpan.textContent = "Incantesimi da completare: " + (total - completed);
 }
-
 function renderTasks() {
     taskList.innerHTML = "";
-
     // Filtra e ordina i task
-    const sortedTasks = sortTasks(filterTasks());
-
-    for (const task of sortedTasks) {
-        const li = document.createElement("li");
+    var filteredTasks = filterTasks();
+    var sortedTasks = sortTasks(filteredTasks);
+    var _loop_1 = function (i) {
+        var task = sortedTasks[i];
+        var li = document.createElement("li");
         li.className = "list-group-item d-flex justify-content-between align-items-center bg-dark text-light task-item";
-
         if (task.completed) {
             li.classList.add("completed");
         }
-
-        const span = document.createElement("span");
+        var span = document.createElement("span");
         span.textContent = task.text;
-
-        const btnGroup = document.createElement("div");
-
-        const completeBtn = document.createElement("button");
+        var btnGroup = document.createElement("div");
+        var completeBtn = document.createElement("button");
         completeBtn.className = "btn btn-success btn-sm me-2";
         completeBtn.textContent = task.completed ? "↶" : "✔";
-        completeBtn.addEventListener("click", () => toggleComplete(task.id));
-
-        const deleteBtn = document.createElement("button");
+        completeBtn.addEventListener("click", function () {
+            toggleComplete(task.id);
+        });
+        var deleteBtn = document.createElement("button");
         deleteBtn.className = "btn btn-danger btn-sm";
         deleteBtn.textContent = "❌";
-        deleteBtn.addEventListener("click", () => deleteTask(task.id));
-
+        deleteBtn.addEventListener("click", function () {
+            deleteTask(task.id);
+        });
         btnGroup.appendChild(completeBtn);
         btnGroup.appendChild(deleteBtn);
-
         li.appendChild(span);
         li.appendChild(btnGroup);
         taskList.appendChild(li);
+    };
+    for (var i = 0; i < sortedTasks.length; i++) {
+        _loop_1(i);
     }
-
     updateStats();
 }
-
+function getTasksArray() {
+    var result = [];
+    var keys = Object.keys(tasks);
+    for (var i = 0; i < keys.length; i++) {
+        var id = parseInt(keys[i]);
+        result.push(tasks[id]);
+    }
+    return result;
+}
 function filterTasks() {
-    if (!searchTerm) return Array.from(tasks.values());
-
-    const filtered = [];
-    for (const task of tasks.values()) {
-        if (task.text.toLowerCase().includes(searchTerm)) {
+    if (!searchTerm)
+        return getTasksArray();
+    var filtered = [];
+    var taskArray = getTasksArray();
+    for (var i = 0; i < taskArray.length; i++) {
+        var task = taskArray[i];
+        if (task.text.toLowerCase().indexOf(searchTerm) !== -1) {
             filtered.push(task);
         }
     }
     return filtered;
 }
-
 function sortTasks(taskArray) {
-    return taskArray.sort((a, b) => {
+    return taskArray.sort(function (a, b) {
         if (currentSort === 'date') {
-            return b.createdAt - a.createdAt;
-        } else {
+            return b.createdAt.getTime() - a.createdAt.getTime();
+        }
+        else {
             // Prima i non completati, poi i completati
             if (a.completed !== b.completed) {
                 return a.completed ? 1 : -1;
             }
-            return b.createdAt - a.createdAt;
+            return b.createdAt.getTime() - a.createdAt.getTime();
         }
     });
 }
-
 function saveTasks() {
-    const tasksArray = Array.from(tasks.values());
+    var tasksArray = getTasksArray();
     localStorage.setItem('harryPotterTasks', JSON.stringify(tasksArray));
 }
-
 function loadTasks() {
-    const savedTasks = localStorage.getItem('harryPotterTasks');
+    var savedTasks = localStorage.getItem('harryPotterTasks');
     if (savedTasks) {
-        const tasksArray = JSON.parse(savedTasks);
-        tasks = new Map();
-        for (const task of tasksArray) {
-            // Assicuriamoci che createdAt sia un oggetto Date
-            task.createdAt = new Date(task.createdAt);
-            tasks.set(task.id, task);
+        var tasksArray = JSON.parse(savedTasks);
+        tasks = {};
+        for (var i = 0; i < tasksArray.length; i++) {
+            var taskData = tasksArray[i];
+            // Converti la stringa della data in oggetto Date
+            tasks[taskData.id] = {
+                id: taskData.id,
+                text: taskData.text,
+                completed: taskData.completed,
+                createdAt: new Date(taskData.createdAt)
+            };
         }
+        function loadFakeTasks() {
+            fetch('https://jsonplaceholder.typicode.com/todos?_limit=5')
+                .then(function (response) { return response.json(); })
+                .then(function (data) {
+                data.forEach(function (item) {
+                    // Genera un id unico
+                    var id = Date.now() + Math.floor(Math.random() * 1000);
+                    var task = {
+                        id: id,
+                        text: item.title,
+                        completed: item.completed,
+                        createdAt: new Date()
+                    };
+                    tasks[id] = task;
+                });
+                renderTasks();
+                saveTasks();
+            })
+                .catch(function (error) { return console.error("Errore nel caricamento dei task fake:", error); });
+        }
+        loadFakeTasksBtn.addEventListener("click", loadFakeTasks);
         renderTasks();
     }
 }
